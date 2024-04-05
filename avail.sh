@@ -16,15 +16,21 @@ TELEGRAM_CHAT_ID="$2"
 # Function to execute the command
 run_command() {
     echo "Running command: curl -sL1 avail.sh | bash"
-    if curl -sL1 avail.sh | bash; then
+    if output=$(curl -sL1 avail.sh | bash); then
         echo "Command executed successfully!"
         return 0
     else
-        echo "Command failed."
-        return 1
+        # Check if the error message contains "Avail stopped" and ignore it
+        if [[ "$output" =~ "Avail stopped" ]]; then
+            echo "Ignoring 'Avail stopped' message and continuing..."
+            return 0
+        else
+            echo "Command failed."
+            return 1
+        fi
     fi
 }
-curl -sL1 avail.sh | bash
+
 # Function to send a message to Telegram
 send_telegram_message() {
     local message="$1"
