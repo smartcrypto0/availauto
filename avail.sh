@@ -10,24 +10,20 @@ fi
 TELEGRAM_BOT_TOKEN="$1"
 TELEGRAM_CHAT_ID="$2"
 
-# Define the URL of the script to execute
-
-
 # Function to execute the command
 run_command() {
     echo "Running command: curl -sL1 avail.sh | bash"
     if output=$(curl -sL1 avail.sh | bash); then
-        echo "Command executed successfully!"
-        return 0
-    else
-        # Check if the error message contains "Avail stopped" and ignore it
         if [[ "$output" =~ "Avail stopped" ]]; then
-            echo "Ignoring 'Avail stopped' message and continuing..."
+            echo "Avail stopped. No further action needed."
             return 0
         else
-            echo "Command failed."
-            return 1
+            echo "Command executed successfully!"
+            return 0
         fi
+    else
+        echo "Command failed."
+        return 1
     fi
 }
 
@@ -44,7 +40,7 @@ send_telegram_message() {
 while true; do
     echo "Attempting to execute the command..."
     if run_command; then
-        break  # Exit the loop if the command succeeds
+        break  # Exit the loop if the command succeeds or Avail is stopped
     else
         echo "Command failed. Retrying in 5 seconds..."
         send_telegram_message "Error executing script on $(hostname), please check."
