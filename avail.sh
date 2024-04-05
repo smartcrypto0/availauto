@@ -9,20 +9,21 @@ fi
 # Telegram Bot token and chat ID
 TELEGRAM_BOT_TOKEN="$1"
 TELEGRAM_CHAT_ID="$2"
+LOG_FILE="script_log.txt"
 
 # Function to execute the command
 run_command() {
-    echo "Running command: curl -sL1 avail.sh | bash"
-    if output=$(curl -sL1 avail.sh | bash); then
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - Running command: curl -sL1 avail.sh | bash" | tee -a "$LOG_FILE"
+    if output=$(curl -sL1 avail.sh | bash 2>&1 | tee -a "$LOG_FILE"); then
         if [[ "$output" =~ "Avail stopped" ]]; then
-            echo "Avail stopped. No further action needed."
-            return 0
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - Avail stopped. Retrying command." | tee -a "$LOG_FILE"
+            return 1
         else
-            echo "Command executed successfully!"
+            echo "$(date +'%Y-%m-%d %H:%M:%S') - Command executed successfully!" | tee -a "$LOG_FILE"
             return 0
         fi
     else
-        echo "Command failed."
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - Command failed." | tee -a "$LOG_FILE"
         return 1
     fi
 }
@@ -38,11 +39,11 @@ send_telegram_message() {
 
 # Loop until the command succeeds
 while true; do
-    echo "Attempting to execute the command..."
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - Attempting to execute the command..." | tee -a "$LOG_FILE"
     if run_command; then
-        break  # Exit the loop if the command succeeds or Avail is stopped
+        break  # Exit the loop if the command succeeds
     else
-        echo "Command failed. Retrying in 5 seconds..."
+        echo "$(date +'%Y-%m-%d %H:%M:%S') - Command failed. Retrying in 5 seconds..." | tee -a "$LOG_FILE"
         send_telegram_message "Error executing script on $(hostname), please check."
         sleep 5  # Wait for 5 seconds before retrying
     fi
