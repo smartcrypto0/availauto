@@ -37,6 +37,15 @@ send_telegram_message() {
         -d "text=$message" >/dev/null
 }
 
+# Function to handle Ctrl+C
+cleanup() {
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - Script stopped by user. Exiting..." | tee -a "$LOG_FILE"
+    exit 0
+}
+
+# Trap Ctrl+C and call the cleanup function
+trap cleanup SIGINT
+
 # Loop until the command succeeds
 while true; do
     echo "$(date +'%Y-%m-%d %H:%M:%S') - Attempting to execute the command..." | tee -a "$LOG_FILE"
